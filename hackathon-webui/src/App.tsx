@@ -20,20 +20,23 @@ const ort = require("onnxruntime-web");
 import npyjs from "npyjs";
 
 // Define image, embedding and model paths
-const IMAGE_PATH = "/assets/data/truck.jpg";
-const IMAGE_EMBEDDING = "/assets/data/truck_embedding.npy";
+const IMAGE_PATH = "/assets/data/construction.jpg";
+const IMAGE_PATH2 = "/assets/data/InglewoodStadiumDesktop.jpg";
+const IMAGE_EMBEDDING = "/assets/data/construction_embedding.npy";
+const IMAGE_EMBEDDING2 = "/assets/data/InglewoodStadiumDesktop_embedding.npy";
 const MODEL_DIR = "/model/sam_onnx_quantized_example.onnx";
 
 const App = () => {
   const {
     clicks: [clicks],
-    image: [, setImage],
-    maskImg: [, setMaskImg],
+    image: [image, setImage],
+    maskImg: [maskImg, setMaskImg],
+    imageSelection: [imageSelection],
   } = useContext(AppContext)!;
   const [model, setModel] = useState<InferenceSession | null>(null); // ONNX model
   const [tensor, setTensor] = useState<Tensor | null>(null); // Image embedding tensor
 
-  // The ONNX model expects the input to be rescaled to 1024. 
+  // The ONNX model expects the input to be rescaled to 1024.
   // The modelScale state variable keeps track of the scale values.
   const [modelScale, setModelScale] = useState<modelScaleProps | null>(null);
 
@@ -54,14 +57,20 @@ const App = () => {
     initModel();
 
     // Load the image
-    const url = new URL(IMAGE_PATH, location.origin);
+    const url = new URL(
+      imageSelection === 1 ? IMAGE_PATH : IMAGE_PATH2,
+      location.origin
+    );
     loadImage(url);
 
     // Load the Segment Anything pre-computed embedding
-    Promise.resolve(loadNpyTensor(IMAGE_EMBEDDING, "float32")).then(
-      (embedding) => setTensor(embedding)
-    );
-  }, []);
+    Promise.resolve(
+      loadNpyTensor(
+        imageSelection === 1 ? IMAGE_EMBEDDING : IMAGE_EMBEDDING2,
+        "float32"
+      )
+    ).then((embedding) => setTensor(embedding));
+  }, [imageSelection]);
 
   const loadImage = async (url: URL) => {
     try {
@@ -70,12 +79,12 @@ const App = () => {
       img.onload = () => {
         const { height, width, samScale } = handleImageScale(img);
         setModelScale({
-          height: height,  // original image height
-          width: width,  // original image width
+          height: height, // original image height
+          width: width, // original image width
           samScale: samScale, // scaling factor for image which has been resized to longest side 1024
         });
-        img.width = width; 
-        img.height = height; 
+        img.width = width;
+        img.height = height;
         setImage(img);
       };
     } catch (error) {
@@ -83,7 +92,7 @@ const App = () => {
     }
   };
 
-  // Decode a Numpy file into a tensor. 
+  // Decode a Numpy file into a tensor.
   const loadNpyTensor = async (tensorFile: string, dType: string) => {
     let npLoader = new npyjs();
     const npArray = await npLoader.load(tensorFile);
@@ -93,7 +102,23 @@ const App = () => {
 
   // Run the ONNX model every time clicks has changed
   useEffect(() => {
+    // console.log("clicks: ", clicks)
+    // console.log("image: ", image)
+    // console.log("maskImg: ", maskImg)
     runONNX();
+
+    const img = document.getElementById("root")?.querySelector("img");
+    console.log(img);
+    img?.addEventListener("click", (e) => {
+      console.log("clicked");
+      const imagePreview = document.getElementById("preview-image");
+      console.log(maskImg);
+      console.log(maskImg?.src);
+      if (imagePreview) {
+        // @ts-ignore
+        imagePreview.src = maskImg?.src || "";
+      } 
+    });
   }, [clicks]);
 
   const runONNX = async () => {
@@ -106,7 +131,7 @@ const App = () => {
       )
         return;
       else {
-        // Preapre the model input in the correct format for SAM. 
+        // Preapre the model input in the correct format for SAM.
         // The modelData function is from onnxModelAPI.tsx.
         const feeds = modelData({
           clicks,
@@ -117,9 +142,11 @@ const App = () => {
         // Run the SAM ONNX model with the feeds returned from modelData()
         const results = await model.run(feeds);
         const output = results[model.outputNames[0]];
-        // The predicted mask returned from the ONNX model is an array which is 
+        // The predicted mask returned from the ONNX model is an array which is
         // rendered as an HTML image using onnxMaskToImage() from maskUtils.tsx.
-        setMaskImg(onnxMaskToImage(output.data, output.dims[2], output.dims[3]));
+        setMaskImg(
+          onnxMaskToImage(output.data, output.dims[2], output.dims[3])
+        );
       }
     } catch (e) {
       console.log(e);

@@ -14,6 +14,7 @@ const Stage = () => {
   const {
     clicks: [, setClicks],
     image: [image],
+    imageSelection: [, setImageSelection],
   } = useContext(AppContext)!;
 
   const getClick = (x: number, y: number): modelInputProps => {
@@ -39,6 +40,40 @@ const Stage = () => {
   const flexCenterClasses = "flex items-center justify-center";
   return (
     <div className={`${flexCenterClasses} w-full h-full`}>
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          padding: "0.5rem",
+          backgroundColor: "blue",
+          color: "white",
+        }}
+      >
+        Autodesk
+        <div style={{ float: "right" }}>
+          <button
+            style={{
+              border: "1px solid white",
+              padding: "5px",
+              marginRight: "1rem",
+            }}
+            onClick={() => setImageSelection(1)}
+          >
+            Truck
+          </button>
+          <button
+            style={{
+              border: "1px solid white",
+              padding: "5px",
+            }}
+            onClick={() => setImageSelection(2)}
+          >
+            Stadium
+          </button>
+        </div>
+      </div>
       <div className={`${flexCenterClasses} relative w-[90%] h-[90%]`}>
         <Tool handleMouseMove={handleMouseMove} />
       </div>
