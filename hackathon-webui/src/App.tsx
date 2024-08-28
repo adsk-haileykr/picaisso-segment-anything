@@ -13,13 +13,15 @@ import { onnxMaskToImage } from "./components/helpers/maskUtils";
 import { modelData } from "./components/helpers/onnxModelAPI";
 import Stage from "./components/Stage";
 import AppContext from "./components/hooks/createContext";
+/* @ts-ignore */
 const ort = require("onnxruntime-web");
+// import * as ort from 'onnxruntime-web';
 /* @ts-ignore */
 import npyjs from "npyjs";
 
 // Define image, embedding and model paths
-const IMAGE_PATH = "/assets/data/dogs.jpg";
-const IMAGE_EMBEDDING = "/assets/data/dogs_embedding.npy";
+const IMAGE_PATH = "/assets/data/truck.jpg";
+const IMAGE_EMBEDDING = "/assets/data/truck_embedding.npy";
 const MODEL_DIR = "/model/sam_onnx_quantized_example.onnx";
 
 const App = () => {
