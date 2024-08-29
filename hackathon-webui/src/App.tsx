@@ -11,19 +11,30 @@ import { handleImageScale } from "./components/helpers/scaleHelper";
 import { modelScaleProps } from "./components/helpers/Interfaces";
 import { onnxMaskToImage } from "./components/helpers/maskUtils";
 import { modelData } from "./components/helpers/onnxModelAPI";
-import Stage from "./components/Stage";
+import Frame from "./components/Frame";
 import AppContext from "./components/hooks/createContext";
 /* @ts-ignore */
 const ort = require("onnxruntime-web");
 // import * as ort from 'onnxruntime-web';
 /* @ts-ignore */
 import npyjs from "npyjs";
+import './App.css';
 
 // Define image, embedding and model paths
-const IMAGE_PATH = "/assets/data/construction.jpg";
-const IMAGE_PATH2 = "/assets/data/InglewoodStadiumDesktop.jpg";
-const IMAGE_EMBEDDING = "/assets/data/construction_embedding.npy";
-const IMAGE_EMBEDDING2 = "/assets/data/InglewoodStadiumDesktop_embedding.npy";
+const IMAGE_PATHS = [
+  "/assets/data/images/construction.jpg",
+  "/assets/data/images/InglewoodStadiumDesktop.jpg",
+  "/assets/data/images/brick1.jpg",
+  "/assets/data/images/site.jpg",
+  "/assets/data/images/brick2.jpg",
+];
+const IMAGE_EMBEDDINGS = [
+  "/assets/data/embeddings/construction_embedding.npy",
+  "/assets/data/embeddings/InglewoodStadiumDesktop_embedding.npy",
+  "/assets/data/embeddings/brick1_embedding.npy",
+  "/assets/data/embeddings/site_embedding.npy",
+  "/assets/data/embeddings/brick2_embedding.npy",
+];
 const MODEL_DIR = "/model/sam_onnx_quantized_example.onnx";
 
 const App = () => {
@@ -57,18 +68,12 @@ const App = () => {
     initModel();
 
     // Load the image
-    const url = new URL(
-      imageSelection === 1 ? IMAGE_PATH : IMAGE_PATH2,
-      location.origin
-    );
+    const url = new URL(IMAGE_PATHS[imageSelection], location.origin);
     loadImage(url);
 
     // Load the Segment Anything pre-computed embedding
     Promise.resolve(
-      loadNpyTensor(
-        imageSelection === 1 ? IMAGE_EMBEDDING : IMAGE_EMBEDDING2,
-        "float32"
-      )
+      loadNpyTensor(IMAGE_EMBEDDINGS[imageSelection], "float32")
     ).then((embedding) => setTensor(embedding));
   }, [imageSelection]);
 
@@ -117,7 +122,7 @@ const App = () => {
       if (imagePreview) {
         // @ts-ignore
         imagePreview.src = maskImg?.src || "";
-      } 
+      }
     });
   }, [clicks]);
 
@@ -144,6 +149,9 @@ const App = () => {
         const output = results[model.outputNames[0]];
         // The predicted mask returned from the ONNX model is an array which is
         // rendered as an HTML image using onnxMaskToImage() from maskUtils.tsx.
+
+        console.log(output)
+
         setMaskImg(
           onnxMaskToImage(output.data, output.dims[2], output.dims[3])
         );
@@ -153,7 +161,7 @@ const App = () => {
     }
   };
 
-  return <Stage />;
+  return <Frame />;
 };
 
 export default App;

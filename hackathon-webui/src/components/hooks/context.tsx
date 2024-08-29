@@ -14,7 +14,7 @@ const AppContextProvider = (props: {
   const [clicks, setClicks] = useState<Array<modelInputProps> | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [maskImg, setMaskImg] = useState<HTMLImageElement | null>(null);
-  const [imageSelection, setImageSelection] = useState<number>(1);
+  const [imageSelection, setImageSelection] = useState<number>(0);
 
   return (
     <AppContext.Provider
